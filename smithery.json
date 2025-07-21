@@ -1,0 +1,9 @@
+{
+  "name": "GeminiImageGen",
+  "displayName": "Gemini Image Generation",
+  "description": "An MCP to generate images using the Gemini Pro Vision model.",
+  "tool": {
+    "class": "GeminiImageGenTool",
+    "file": "dist/index.js"
+  }
+}
