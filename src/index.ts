@@ -1,43 +1,55 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import * as fs from 'fs';
+// To run this code you need to install the following dependencies:
+// npm install @google/genai
+// npm install -D @types/node
 
-export const configSchema = z.object({
-  apiKey: z.string().describe('Google Generative AI API Key'),
-  imagePath: z.string().describe('Path to save the generated image'),
-});
+import {
+  GoogleGenAI
+} from '@google/genai';
+import { writeFile } from 'fs';
 
-export default function ({ config }: { config: z.infer<typeof configSchema> }) {
-  const server = new McpServer({
-    name: 'GeminiImageGen',
-    version: '1.0.0',
+function saveBinaryFile(fileName: string, content: Buffer) {
+  writeFile(fileName, content, 'utf8', (err) => {
+    if (err) {
+      console.error(`Error writing file ${fileName}:`, err);
+      return;
+    }
+    console.log(`File ${fileName} saved to file system.`);
+  });
+}
+
+async function main() {
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
   });
 
-  server.tool(
-    'generateImage',
-    'Generate an image using Gemini Pro Vision',
-    { 
-      prompt: z.string().describe('The prompt for the image generation'),
+  const response = await ai.models.generateImages({
+    model: 'models/imagen-4.0-ultra-generate-preview-06-06',
+    prompt: `INSERT_INPUT_HERE`,
+    config: {
+      numberOfImages: 1,
+      outputMimeType: 'image/jpeg',
+      aspectRatio: '1:1',
     },
-    async ({ prompt }) => {
-      const genAI = new GoogleGenerativeAI(config.apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+  });
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+  if (!response?.generatedImages) {
+    console.error('No images generated.');
+    return;
+  }
 
-      // For now, we'll assume the model returns a URL to the image.
-      // We'll fetch the image and save it to the specified path.
-      const imageUrl = text; // Replace with actual image URL from response
-      const imageResponse = await fetch(imageUrl);
-      const imageBuffer = await imageResponse.arrayBuffer();
-      fs.writeFileSync(config.imagePath, Buffer.from(imageBuffer));
+  if (response.generatedImages.length !== 1) {
+    console.error('Number of images generated does not match the requested number.');
+  }
 
-      return { content: [{ type: 'text', text: `Image saved to ${config.imagePath}` }] };
+  for (let i = 0; i < response.generatedImages.length; i++) {
+    if (!response.generatedImages?.[i]?.image?.imageBytes) {
+      continue;
     }
-  );
-
-  return server.server;
+    const fileName = `image_${i}.jpeg`;
+    const inlineData = response?.generatedImages?.[i]?.image?.imageBytes;
+    const buffer = Buffer.from(inlineData || '', 'base64');
+    saveBinaryFile(fileName, buffer);
+  }
 }
+
+main();

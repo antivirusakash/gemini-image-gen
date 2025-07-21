@@ -9,6 +9,7 @@
     "start": "npx smithery dev"
   },
   "dependencies": {
+    "@google/genai": "^1.0.0",
     "@google/generative-ai": "^0.1.0",
     "@modelcontextprotocol/sdk": "*"
   },
