@@ -1,22 +1,29 @@
 {
   "name": "gemini-image-gen-mcp",
   "version": "1.0.0",
-  "description": "A Smithery MCP for generating images with Gemini.",
+  "description": "MCP server for generating images using Gemini AI",
   "main": "dist/index.js",
-  "module": "src/index.ts",
+  "type": "module",
   "scripts": {
-    "build": "npx tsc",
-    "start": "npx smithery dev"
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node test-mcp.js"
   },
+  "keywords": [
+    "mcp",
+    "gemini",
+    "ai",
+    "image-generation"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
-    "@google/genai": "^1.0.0",
-    "@google/generative-ai": "^0.1.0",
-    "@modelcontextprotocol/sdk": "*"
+    "@modelcontextprotocol/sdk": "^1.16.0",
+    "@google/genai": "^0.2.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@smithery/cli": "^1.2.16",
-    "@types/node": "^24.0.15",
-    "tsx": "^4.20.3",
-    "typescript": "^5.0.0"
+    "typescript": "^5.7.2"
   }
 }
